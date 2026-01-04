@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>斗六膨鼠森林公園 | 親子生態樂園</title>
+    <style>
+        /* --- 0. 色票定義 --- */
+        :root {
+            --color-bg: #F7F1DE;       /* 米黃色背景 */
+            --color-green: #A8BBA3;    /* 鼠尾草綠 */
+            --color-brown: #B87C4C;    /* 紅棕色 (松鼠/橡果) */
+            --color-light-brown: #C4A484; /* 淺棕色 */
+            --color-text: #4a4a4a;     /* 深灰色文字 */
+            --color-white: #ffffff;
+        }
+
+        /* --- 基礎設定 --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif; }
+        body { color: var(--color-text); background-color: var(--color-bg); line-height: 1.6; }
+        a { text-decoration: none; color: inherit; }
+
+        /* --- 1. 首頁 (Hero) --- */
+        #hero {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('JPG/00.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--color-white);
+            text-align: center;
+        }
+        #hero h1 { font-size: 3.5rem; margin-bottom: 15px; text-shadow: 2px 2px 8px rgba(0,0,0,0.6); letter-spacing: 2px; }
+        #hero p { font-size: 1.3rem; margin-bottom: 35px; font-weight: bold; text-shadow: 1px 1px 5px rgba(0,0,0,0.5); }
+        
+        .cta-btn {
+            padding: 12px 40px;
+            background-color: var(--color-brown);
+            color: var(--color-white);
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid var(--color-brown);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .cta-btn:hover { background-color: transparent; border-color: var(--color-white); }
+
+        /* --- 2. 內容容器 --- */
+        #main-content {
+            min-height: 100vh;
+            padding: 40px 20px;
+            background-color: var(--color-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .content-wrapper {
+            max-width: 1000px;
+            width: 100%;
+            background: var(--color-white);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid var(--color-green);
+        }
+
+        /* --- 分頁選單 --- */
+        .tab-nav { display: flex; background-color: #fff; border-bottom: 2px solid var(--color-light-brown); flex-wrap: wrap; }
+        .tab-btn { flex: 1; min-width: 100px; padding: 20px; border: none; background: none; cursor: pointer; font-size: 1.1rem; font-weight: bold; color: #888; transition: 0.3s; }
+        .tab-btn:hover { background-color: var(--color-bg); color: var(--color-brown); }
+        .tab-btn.active { background-color: var(--color-bg); color: var(--color-brown); border-bottom: 4px solid var(--color-brown); }
+
+        .tab-pane { display: none; padding: 40px; animation: fadeIn 0.6s; }
+        .tab-pane.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { border-bottom: 3px solid var(--color-green); display: inline-block; margin-bottom: 30px; color: var(--color-brown); font-size: 2rem; }
+
+        /* --- 設施 Grid & 互動 --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        
+        .facility-card { 
+            position: relative; height: 200px; border-radius: 10px; overflow: hidden; cursor: pointer; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            background-color: #eee; 
+        }
+        
+        .facility-bg { 
+            width: 100%; height: 100%; 
+            background-size: cover; 
+            background-position: center; 
+            transition: transform 0.5s; 
+        }
+        
+        .facility-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white; display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s;
+            font-weight: bold; font-size: 1.1rem; text-align: center; padding: 10px;
+        }
+        
+        .facility-card:hover .facility-overlay { opacity: 1; }
+        .facility-card:hover .facility-bg { transform: scale(1.1); }
+        
+        .card-title-float {
+            position: absolute; bottom: 10px; left: 10px; 
+            color: white; font-weight: bold; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+
+        /* --- ★★★ Modal (彈出視窗) - 大幅修改以支援圖片置中與換頁 ★★★ --- */
+        #modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); backdrop-filter: blur(5px); }
+        
+        /* modal-content 結構調整 */
+        .modal-content { 
+            background-color: transparent; /* 背景透明，讓焦點在圖片上 */
+            margin: 2vh auto; /* 上下留一點邊距 */
+            width: 95%; 
+            max-width: 1200px;
+            height: 96vh; /* 設定高度以便垂直置中 */
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            animation: popIn 0.3s; 
+        }
+        @keyframes popIn { from {transform: scale(0.9); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+        
+        /* 圖片區域 Header - 負責置中 */
+        .modal-header { 
+            flex: 1; /* 佔用大部分空間 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative; /* 給導覽按鈕定位用 */
+            overflow: hidden;
+        }
+
+        /* 圖片本體 - 設定為畫面的 70% */
+        .modal-img-tag { 
+            max-width: 70vw;  /* 最大寬度為視窗寬度的 70% */
+            max-height: 70vh; /* 最大高度為視窗高度的 70% */
+            width: auto;
+            height: auto;
+            object-fit: contain; /* 保持比例完整顯示 */
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            border-radius: 8px;
+        }
+        
+        /* 關閉按鈕 */
+        .close-btn { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; cursor: pointer; z-index: 100; transition: 0.3s;}
+        .close-btn:hover { color: var(--color-brown); transform: scale(1.1); }
+
+        /* 文字說明區域 Body */
+        .modal-body { 
+            background-color: #fefefe;
+            padding: 25px; 
+            border-radius: 12px;
+            margin-top: 15px;
+            flex-shrink: 0; /* 防止被壓縮 */
+            max-height: 25vh; /* 限制文字區高度 */
+            overflow-y: auto; /* 文字太多時可捲動 */
+        }
+        .modal-body h3 { color: var(--color-brown); font-size: 1.8rem; margin-bottom: 10px; border-left: 5px solid var(--color-green); padding-left: 15px; }
+        .modal-body p { font-size: 1.1rem; color: #333; }
+
+        /* --- 導覽換頁按鈕 --- */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.7);
+            font-size: 60px;
+            cursor: pointer;
+            padding: 20px;
+            z-index: 90;
+            transition: 0.3s;
+            user-select: none; /* 防止連點選取文字 */
+        }
+        .nav-btn:hover { color: white; background-color: rgba(0,0,0,0.3); border-radius: 10px;}
+        .prev-btn { left: 10px; }
+        .next-btn { right: 10px; }
+
+
+        /* --- 交通與其他樣式維持不變 --- */
+        .access-layout { display: flex; gap: 30px; flex-wrap: wrap; }
+        .access-info { flex: 1; min-width: 280px; }
+        .access-map { flex: 1; min-width: 280px; height: 500px; background: #eee; border-radius: 12px; overflow: hidden; border: 2px solid var(--color-light-brown); }
+        
+        .info-block { margin-bottom: 25px; }
+        .info-block h3 { border:none; color: var(--color-brown); font-size: 1.3rem; margin-bottom: 5px; display: flex; align-items: center; }
+        .info-block p { font-size: 1.1rem; color: #555; margin-left: 5px; }
+
+        .parking-box { background-color: #fff; border: 2px solid var(--color-brown); border-radius: 8px; padding: 20px; margin-bottom: 25px; }
+        .parking-item { margin-bottom: 15px; display: flex; align-items: flex-start; }
+        .parking-icon { margin-right: 10px; font-size: 1.2rem; }
+        .warning-text { color: #d35400; font-weight: bold; background: #fae5d3; padding: 2px 8px; border-radius: 4px; font-size: 0.9rem; display: inline-block; margin-top: 5px;}
+
+        .contact-card { background-color: var(--color-bg); padding: 40px; border-radius: 12px; text-align: center; max-width: 600px; margin: 0 auto; border: 2px dashed var(--color-brown); }
+        .contact-row h3 { border: none; font-size: 1.3rem; color: var(--color-brown); margin-bottom: 5px;}
+        .fb-btn { display: inline-block; background-color: #1877F2; color: white; padding: 12px 30px; border-radius: 50px; transition: 0.3s; margin-top: 15px; text-decoration: none;}
+        .fb-btn:hover { background-color: #165ec9; transform: translateY(-2px); }
+
+        .about-grid { display: grid; grid-template-columns: 1fr; gap: 30px; text-align: left; }
+        .about-item h3 { color: var(--color-brown); font-size: 1.3rem; margin-bottom: 10px; border-bottom: 2px solid var(--color-light-brown); display: inline-block; padding-bottom: 5px; }
+        .about-item p { color: #555; text-align: justify; line-height: 1.8; }
+        
+        footer { text-align: center; padding: 30px; color: var(--color-brown); font-size: 0.9rem; margin-top: auto; }
+        
+        @media (max-width: 768px) {
+            #hero h1 { font-size: 2.2rem; }
+            .grid { grid-template-columns: repeat(2, 1fr); }
+            /* 手機版 Modal 調整 */
+            .modal-content { width: 98%; height: 98vh; margin: 1vh auto;}
+            .modal-img-tag { max-width: 95vw; max-height: 60vh; }
+            .nav-btn { font-size: 40px; padding: 10px; }
+        }
+        @media (max-width: 480px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <section id="hero">
+        <h1>斗六膨鼠森林公園</h1>
+        <p>繽紛童趣・生態綠意・週末好去處</p>
+        <button class="cta-btn" onclick="scrollToContent()">探索樂園 ▼</button>
+    </section>
+
+    <section id="main-content">
+        <div class="content-wrapper">
+            
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="openTab(event, 'facilities')">園區設施</button>
+                <button class="tab-btn" onclick="openTab(event, 'access')">交通資訊</button>
+                <button class="tab-btn" onclick="openTab(event, 'contact')">聯絡/活動</button>
+                <button class="tab-btn" onclick="openTab(event, 'about')">關於公園</button>
+            </div>
+
+            <div id="facilities" class="tab-pane active">
+                <center><h2>園區設施導覽</h2></center>
+                <p style="text-align:center; margin-bottom:20px; color:#888;">(請移動滑鼠點擊圖片查看詳情)</p>
+                <div class="grid">
+                    
+                    <div class="facility-card" onclick="openModal(0)">
+                        <div class="facility-bg" style="background-image: url('JPG/01.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">戲水區</div>
+                    </div>
+
+                    <div class="facility-card" onclick="openModal(1)">
+                        <div class="facility-bg" style="background-image: url('JPG/02.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">攀爬塔</div>
+                    </div>
+
+                    <div class="facility-card" onclick="openModal(2)">
+                        <div class="facility-bg" style="background-image: url('JPG/03.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">旋轉飛盤</div>
+                    </div>
+
+                    <div class="facility-card" onclick="openModal(3)">
+                        <div class="facility-bg" style="background-image: url('JPG/04.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">盪鞦韆</div>
+                    </div>
+
+                    <div class="facility-card" onclick="openModal(4)">
+                        <div class="facility-bg" style="background-image: url('JPG/05.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">滑草場&溜滑梯</div>
+                    </div>
+
+                    <div class="facility-card" onclick="openModal(5)">
+                        <div class="facility-bg" style="background-image: url('JPG/06.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">橡果溜滑梯</div>
+                    </div>
+
+                    <div class="facility-card" onclick="openModal(6)">
+                        <div class="facility-bg" style="background-image: url('JPG/07.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">滑索</div>
+                    </div>
+
+                    <div class="facility-card" onclick="openModal(7)">
+                        <div class="facility-bg" style="background-image: url('JPG/08.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">水管沙坑</div>
+                    </div>
+
+                    <div class="facility-card" onclick="openModal(8)">
+                        <div class="facility-bg" style="background-image: url('JPG/09.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">攀爬網&滑草場</div>
+                    </div>
+
+                    <div class="facility-card" onclick="openModal(9)">
+                        <div class="facility-bg" style="background-image: url('JPG/10.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">大型攀爬網設施</div>
+                    </div>
+
+                    <div class="facility-card" onclick="openModal(10)">
+                        <div class="facility-bg" style="background-image: url('JPG/11.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">平衡木</div>
+                    </div>
+
+                    <div class="facility-card" onclick="openModal(11)">
+                        <div class="facility-bg" style="background-image: url('JPG/12.jpg');"></div>
+                        <div class="facility-overlay">點擊圖片檢視詳細資訊</div>
+                        <div class="card-title-float">運動設施</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="access" class="tab-pane">
+                <center><h2>交通指南</h2></center>
+                <div class="access-layout">
+                    <div class="access-info">
+                        
+                        <div class="info-block">
+                            <h3>📍 公園地址</h3>
+                            <p style="font-size:1.2rem; font-weight:bold;">雲林縣斗六市大學路三段222-1號</p>
+                        </div>
+                        
+                        <div class="parking-box">
+                            <h3 style="color:var(--color-brown); margin-bottom:15px; border:none;">🅿️ 停車資訊</h3>
+                            <div class="parking-item">
+                                <div class="parking-icon">❶</div>
+                                <div>
+                                    <strong>膨鼠森林公園平面停車場</strong>
+                                    <p style="font-size:0.95rem; color:#666;">位於大學路三段，靠近「金瓜鼠樂園」。停好車步行約 3 分鐘即可抵達遊戲區。</p>
+                                    <span class="warning-text">⚠️ 收費：20元/小時 (僅限電子支付/無現金收費)</span>
+                                </div>
+                            </div>
+                            <div class="parking-item">
+                                <div class="parking-icon">❷</div>
+                                <div>
+                                    <strong>周邊路邊停車格</strong>
+                                    <p style="font-size:0.95rem; color:#666;">公園四周道路設有公有停車格，可依現場狀況停放。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-block">
+                            <h3>🚌 大眾運輸</h3>
+                            <p>搭乘火車至<strong>斗六火車站</strong>，轉乘計程車約 10 分鐘即可抵達；亦可於車站租借公共自行車 (Moovo) 騎行前往。</p>
+                        </div>
+
+                    </div>
+                    <div class="access-map">
+                        <iframe width="100%" height="100%" style="border:0" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=雲林縣斗六市大學路三段222-1號&t=&z=15&ie=UTF8&iwloc=&output=embed"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div id="contact" class="tab-pane">
+                <center><h2>聯絡與市集資訊</h2></center>
+                <div class="contact-card">
+                    <div class="contact-row">
+                        <h3>📞 管理單位電話</h3>
+                        <p style="font-size:1.2rem; color:#555; margin-bottom:20px;">(05) 533-2000 (斗六市公所)</p>
+                    </div>
+                    <hr style="border:0; border-top:1px dashed #ccc; margin:20px 0;">
+                    <div class="contact-row">
+                        <h3>🎪 膨鼠森林市集</h3>
+                        <p style="margin-top:10px;">市集相關事務、攤位報名諮詢</p>
+                        <p style="color: var(--color-brown); font-size: 1.5rem; margin: 5px 0;">+886 913 958 055</p>
+                        <a href="https://www.facebook.com/DouliuHolidayMarket" target="_blank" class="fb-btn">前往 FB 粉絲專頁</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="about" class="tab-pane">
+                <center><h2>關於膨鼠森林公園</h2></center>
+                <div class="about-grid">
+                    <div class="about-item">
+                        <h3>🐿️ 為什麼叫「膨鼠」？</h3>
+                        <p>「膨鼠」是松鼠的台語發音。這裡大樹成林，是台灣常見的<strong>赤腹松鼠</strong>最喜愛的家。您走在公園內，隨時抬頭都能看見這些小居民在林間飛越嬉戲，因此公園特別以此命名。</p>
+                    </div>
+                    <div class="about-item">
+                        <h3>🌿 生態友善的設計</h3>
+                        <p>公園佔地約 8 公頃，堅持「不影響原有棲地」的原則。全區約 1390 棵既有喬木中，<strong>僅移植了 7 棵</strong>，最大程度地保留了松鼠的家與綠色隧道。</p>
+                    </div>
+                    <div class="about-item">
+                        <h3>👨‍👩‍👧‍👦 親子同樂的「膨友」基地</h3>
+                        <p>這是一個被大自然環抱的遊憩據點。我們有橡果體健山丘、直排輪場與戶外天篷舞台，週末假日更常舉辦市集與大型活動，是歡迎所有「膨友」們的最佳去處。</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <footer>© 2024 斗六膨鼠森林公園. All Rights Reserved.</footer>
+    </section>
+
+    <div id="modal" onclick="closeModal(event)">
+        <span class="close-btn" onclick="closeModalBtn()">×</span>
+        
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="nav-btn prev-btn" onclick="prevFacility(event)">&#10094;</div>
+                
+                <img id="modal-img-tag" class="modal-img-tag" src="" alt="設施圖片">
+                
+                <div class="nav-btn next-btn" onclick="nextFacility(event)">&#10095;</div>
+            </div>
+            
+            <div class="modal-body">
+                <h3 id="modal-title">標題</h3>
+                <p id="modal-desc">內容說明...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 資料定義 (將設施資料抽離出來，以便導覽切換) ---
+        const facilitiesData = [
+            { title: '戲水區', img: 'JPG/01.jpg', desc: '炎炎夏日最受歡迎的消暑熱點！地面噴泉定時噴水，水柱忽高忽低，讓孩子們在清涼的水舞中盡情嬉戲。' },
+            { title: '攀爬塔', img: 'JPG/02.jpg', desc: '具備挑戰性的立體攀爬結構，訓練孩子的手腳協調與膽量，登頂後還能俯瞰周邊景色。' },
+            { title: '旋轉飛盤', img: 'JPG/03.jpg', desc: '多人共玩的旋轉遊具，需要孩子們合作推動或運用離心力，享受旋轉帶來的刺激快感。' },
+            { title: '盪鞦韆', img: 'JPG/04.jpg', desc: '公園內設有不同形式的鞦韆，包含鳥巢鞦韆與一般鞦韆，讓大人小孩都能享受擺盪在空中的輕盈感。' },
+            { title: '滑草場&溜滑梯', img: 'JPG/05.jpg', desc: '利用地形高低差設計的滑草坡與磨石子溜滑梯，享受重力加速度的快感，是消耗體力的好地方。' },
+            { title: '橡果溜滑梯', img: 'JPG/06.jpg', desc: '園區最具代表性的地標！巨大的彩色橡果造型溜滑梯，色彩鮮豔吸睛，結合了攀爬入口，好玩又好拍。' },
+            { title: '滑索', img: 'JPG/07.jpg', desc: '模擬泰山擺盪的刺激遊具，讓孩子體驗在林間飛翔的速度感，是極具人氣的冒險設施。' },
+            { title: '水管沙坑', img: 'JPG/08.jpg', desc: '結合水泥涵管設計的創意沙坑，既能遮陽又能當作秘密基地，讓孩子發揮無限想像力堆砌沙堡。' },
+            { title: '攀爬網&滑草場', img: 'JPG/09.jpg', desc: '將攀爬網覆蓋於坡面上，孩子需手腳並用向上攀爬，再從旁邊的滑草坡一溜而下，動靜皆宜。' },
+            { title: '大型攀爬網設施', img: 'JPG/10.jpg', desc: '錯綜複雜的網狀結構，提供多樣化的攀爬路徑，全面鍛鍊孩子的大肌肉群與空間感。' },
+            { title: '平衡木', img: 'JPG/11.jpg', desc: '利用原木或仿木材質設置的平衡挑戰區，考驗孩子的專注力與身體平衡感。' },
+            { title: '運動設施', img: 'JPG/12.jpg', desc: '專為成人與長輩設計的體健器材，包含漫步機、轉腰器等，讓陪同的家長也能在綠意中舒展筋骨。' }
+        ];
+
+        // 目前顯示的設施索引
+        let currentFacilityIndex = 0;
+
+        // --- 原有功能 ---
+        function scrollToContent() {
+            document.getElementById('main-content').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function openTab(evt, tabName) {
+            var i, tabContent, tabLinks;
+            tabContent = document.getElementsByClassName("tab-pane");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].style.display = "none";
+                tabContent[i].classList.remove("active");
+            }
+            tabLinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tabLinks.length; i++) {
+                tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            setTimeout(() => { document.getElementById(tabName).classList.add("active"); }, 10);
+            evt.currentTarget.className += " active";
+        }
+
+        // --- Modal 功能更新 ---
+        var modal = document.getElementById("modal");
+        var mTitle = document.getElementById("modal-title");
+        var mDesc = document.getElementById("modal-desc");
+        var mImgTag = document.getElementById("modal-img-tag"); // 改抓 img 標籤
+
+        // 開啟視窗 (現在接收索引值)
+        function openModal(index) {
+            currentFacilityIndex = index; // 更新當前索引
+            loadModalData(index);
+            modal.style.display = "block";
+        }
+
+        // 載入資料到 Modal 的輔助函式
+        function loadModalData(index) {
+            const data = facilitiesData[index];
+            mTitle.innerText = data.title;
+            mDesc.innerText = data.desc;
+            mImgTag.src = data.img; // 設定 img 標籤的 src
+            mImgTag.alt = data.title;
+        }
+
+        // 下一個設施
+        function nextFacility(event) {
+            event.stopPropagation(); // 防止觸發背景關閉點擊
+            currentFacilityIndex++;
+            if (currentFacilityIndex >= facilitiesData.length) {
+                currentFacilityIndex = 0; // 回到第一個
+            }
+            loadModalData(currentFacilityIndex);
+        }
+
+        // 上一個設施
+        function prevFacility(event) {
+            event.stopPropagation(); // 防止觸發背景關閉點擊
+            currentFacilityIndex--;
+            if (currentFacilityIndex < 0) {
+                currentFacilityIndex = facilitiesData.length - 1; // 跳到最後一個
+            }
+            loadModalData(currentFacilityIndex);
+        }
+
+        function closeModalBtn() { modal.style.display = "none"; }
+        function closeModal(event) { if (event.target == modal) { modal.style.display = "none"; } }
+    </script>
+
+</body>
+</html>
